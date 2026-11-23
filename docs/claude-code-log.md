@@ -21,3 +21,21 @@ Registro vivo para la sección «Cómo usé Claude Code» del README. Fechas en 
   - Un paso del agente por invocación, con lease en la BD y encadenado con `after()`.
   - Motor como máquina de estados pura, testeable sin red.
 - **Incidencia**: el modo automático bloqueó `npx create-next-app`, que descarga y ejecuta código remoto. El andamiaje lo lanzo yo a mano.
+
+## 2026-11-23 — Fase 1: andamiaje
+
+- `create-next-app` falló por las mayúsculas del nombre de la carpeta (restricción de npm). La IA propuso generarlo en una subcarpeta `agentes-speed` y mover el contenido. Lo ejecuté yo.
+- Next.js 16 genera un `AGENTS.md` que avisa de cambios de API respecto a lo que conoce el modelo. Queda importado desde `CLAUDE.md` para que Claude lea la documentación incluida antes de escribir rutas.
+- Vitest 5 no instalaba con `@types/node@20`. La IA lo subió a la 24, que es la versión de Node de Vercel.
+- Mis permisos de Claude Code bloquean leer o escribir `.env*`. Creé `.env.example` a mano con el contenido que propuso la IA.
+
+## 2026-11-23 — Fase 2: dominio puro
+
+- **Checks deterministas** con parse5 (errores de parseo del estándar HTML, con línea y columna) y cheerio (selectores, enlaces, formularios). Los enlaces se resuelven igual que lo hará el iframe de la vista previa. Las rutas absolutas `/x.html` cuentan como error porque romperían la vista previa.
+- **Decisión de la IA**: un intento cuenta cuando Develop *entrega*, no cuando empieza. Así un paso que se cae a medias y se reintenta no consume intentos.
+- **Decisión de la IA**: si la revisión LLM devuelve `fail` pero sin issues bloqueantes, se cuenta como fallo usando su resumen. Si la revisión no está disponible, deciden solo los checks deterministas.
+- Se añadió `step_count` a `runs` como tope global (50 pasos) para que ninguna ejecución pueda entrar en un bucle infinito.
+- **Fallo detectado por un test**: daba por hecho que parse5 informaba de etiquetas sin cerrar o mal anidadas. En realidad solo informa de errores de tokenización y repara el árbol en silencio, como un navegador.
+  - Lo descubrió el test «reports unclosed and misnested tags», escrito antes de comprobar la API.
+  - La IA lo verificó con un script de prueba y añadió `nestingProblems`: una pila de etiquetas que respeta los elementos vacíos y los de cierre opcional, e ignora comentarios, `<script>`/`<style>` y atributos. Lleva tests propios para los falsos positivos.
+  - Lección para el README: un check «el HTML parsea» no sirve de nada si el parser es tolerante.
