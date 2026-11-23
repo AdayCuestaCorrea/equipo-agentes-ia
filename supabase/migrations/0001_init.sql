@@ -13,6 +13,7 @@ create table if not exists public.runs (
   mode            text not null default 'live' check (mode in ('live','demo')),
   current_version int  not null default 0,
   step_count      int  not null default 0,
+  error_count     int  not null default 0,
   locked_until    timestamptz not null default 'epoch',
   error           text,
   is_showcase     boolean not null default false,
@@ -28,6 +29,7 @@ create table if not exists public.tasks (
   position     int  not null,
   title        text not null,
   description  text not null,
+  files        jsonb not null default '[]'::jsonb,
   acceptance   jsonb not null default '[]'::jsonb,
   status       text not null default 'pending'
                check (status in ('pending','developing','testing','fixing','passed','failed')),
@@ -87,6 +89,7 @@ create table if not exists public.test_reports (
   deterministic jsonb not null,
   llm_review    jsonb,
   passed        boolean not null,
+  failures      jsonb not null default '[]'::jsonb,
   created_at    timestamptz not null default now(),
   unique (task_id, attempt)
 );
