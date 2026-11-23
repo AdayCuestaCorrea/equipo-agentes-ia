@@ -55,3 +55,12 @@ Registro vivo para la sección «Cómo usé Claude Code» del README. Fechas en 
   3. **Yo consulté los límites gratuitos en AI Studio**: gemini-3.8-flash permite 5 RPM y **20 RPD**; gemini-3.5-flash-lite, 15 RPM y 500 RPD. Con 7–19 llamadas por ejecución, 3.8 Flash daría para una ejecución al día. **Cambio de plan**: Flash-Lite pasa a ser el principal y 3.8 Flash el respaldo.
   4. 503 «high demand» persistentes en ambos modelos. Ahora hay backoff (2 s y 6 s), se respeta el `retryDelay` de los 429 por minuto y se salta al otro modelo si se agota la cuota diaria. Hay un presupuesto de 200 s por llamada para no pasar del límite de Vercel. El motor trata la indisponibilidad como error transitorio: 3 intentos y después `failed` con un mensaje claro.
 - **Plan mal ordenado por el LLM**: puso «enlazar en el menú» antes de «crear la página», y esa tarea fallaría siempre en el check de enlaces. Se añadió al prompt del Orquestador que cada tarea se prueba nada más terminarla y que no puede depender de una posterior.
+- **Respaldo con Groq adelantado** (decisión mía, tras ver los 503 persistentes de Gemini).
+  - La IA verificó en la documentación de Groq que `openai/gpt-oss-120b` es de producción y admite `json_schema` estricto.
+  - Yo consulté los límites: 30 RPM, 1K RPD, **8K TPM** y 200K TPD.
+  - Cadena `FallbackProvider` Gemini → Groq. Solo se cambia de proveedor si el anterior no está disponible; un JSON inválido no se oculta cambiando de proveedor.
+- **Primera ejecución real completa** («añade una página de contacto a esta web»): `done`, 3/3 tareas, 7 llamadas y 133 s.
+  - El plan y la primera entrega los hizo Gemini Flash-Lite (18 s y 66 s); el resto, Groq (1–6 s por llamada), porque Gemini volvió a saturarse.
+  - El formulario generado es correcto: labels, `type="email"` y `required`.
+  - Sospeché que Develop había borrado contenido de `index.html` por su tamaño. Lo comprobé y no fue así.
+- **Grabación del modo demo**: `fixtures/demo-run.json` sale de esa ejecución real. En ella, Testing aprobó todo al primer intento, así que la grabación real **no** muestra el bucle de corrección. El bucle está cubierto por el test con la grabación escrita a mano (`lib/engine/__fixtures__/contact-run.ts`).
