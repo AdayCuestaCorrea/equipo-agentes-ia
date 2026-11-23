@@ -1,69 +1,101 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Suspense } from "react";
+import { AgentAvatar, RunStatusBadge } from "@/components/run/ui";
+import type { RunStatus } from "@/lib/domain/types";
+import { AGENT_LABEL, AGENT_ROLE } from "@/lib/runs/labels";
+import { publicClient } from "@/lib/supabase/public";
+
+type RunRow = { id: string; prompt: string; status: RunStatus; mode: string; created_at: string; is_showcase: boolean };
+
+async function Showcase() {
+  const db = publicClient();
+  const { data: featured } = await db
+    .from("runs")
+    .select("id, prompt, status, mode, created_at, is_showcase")
+    .eq("is_showcase", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<RunRow>();
+  const { data: recent } = await db
+    .from("runs")
+    .select("id, prompt, status, mode, created_at, is_showcase")
+    .order("created_at", { ascending: false })
+    .limit(8)
+    .returns<RunRow[]>();
+  const showcase = featured ?? recent?.find((r) => r.status === "done") ?? null;
+
+  return (
+    <>
+      {showcase ? (
+        <Link
+          href={`/runs/${showcase.id}`}
+          className="group block rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-zinc-300 hover:shadow"
+        >
+          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Ejecución de ejemplo, ya completada</p>
+          <p className="mt-1 text-lg font-semibold text-zinc-900">«{showcase.prompt}»</p>
+          <p className="mt-2 flex items-center gap-2 text-sm text-zinc-600">
+            <RunStatusBadge status={showcase.status} />
+            <span className="text-sky-700 group-hover:underline">Ver qué hizo cada agente →</span>
+          </p>
+        </Link>
+      ) : (
+        <p className="rounded-xl border border-dashed border-zinc-300 p-5 text-sm text-zinc-500">Aún no hay ejecuciones.</p>
+      )}
+
+      {recent && recent.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-2 text-sm font-semibold text-zinc-900">Últimas ejecuciones</h2>
+          <ul className="divide-y divide-zinc-100 rounded-xl border border-zinc-200 bg-white">
+            {recent.map((r) => (
+              <li key={r.id}>
+                <Link href={`/runs/${r.id}`} className="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-zinc-50">
+                  <span className="min-w-0 flex-1 truncate text-zinc-800">«{r.prompt}»</span>
+                  {r.mode === "demo" && <span className="text-[11px] font-medium text-amber-700">demo</span>}
+                  <RunStatusBadge status={r.status} />
+                  <time className="hidden shrink-0 text-xs tabular-nums text-zinc-400 sm:block">
+                    {new Date(r.created_at).toLocaleString("es-ES", { dateStyle: "short", timeStyle: "short" })}
+                  </time>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
+      <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
+        Tres agentes de IA que modifican una web de verdad
+      </h1>
+      <p className="mt-3 max-w-2xl text-zinc-600">
+        Pides un cambio para la web de una panadería («añade una página de contacto a esta web»). El Orquestador lo divide en
+        tareas, Develop las implementa y Testing las comprueba con pruebas automáticas y una revisión con LLM, devolviéndolas
+        hasta que todo pasa. Cada versión se puede abrir en una vista previa real.
+      </p>
+
+      <ol className="mt-6 grid gap-3 sm:grid-cols-3">
+        {(["orchestrator", "develop", "testing"] as const).map((a, i) => (
+          <li key={a} className="flex items-start gap-3 rounded-xl border border-zinc-200 bg-white p-3">
+            <AgentAvatar agent={a} />
+            <div>
+              <p className="text-sm font-semibold text-zinc-900">
+                {i + 1}. {AGENT_LABEL[a]}
+              </p>
+              <p className="text-xs text-zinc-600">{AGENT_ROLE[a]}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <div className="mt-8">
+        <Suspense fallback={<div className="h-28 animate-pulse rounded-xl bg-zinc-200" />}>
+          <Showcase />
+        </Suspense>
+      </div>
+    </main>
   );
 }
