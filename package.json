@@ -13,7 +13,8 @@
     "record-demo": "tsx --env-file=.env.local scripts/record-demo.ts",
     "gen:template": "tsx scripts/gen-template.ts",
     "predev": "npm run gen:template",
-    "prebuild": "npm run gen:template"
+    "prebuild": "npm run gen:template",
+    "smoke": "tsx --env-file=.env.local scripts/smoke-api.ts"
   },
   "dependencies": {
     "@google/genai": "^3.6.1",
