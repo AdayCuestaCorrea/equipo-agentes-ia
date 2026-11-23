@@ -71,3 +71,13 @@ describe("FallbackProvider", () => {
     await expect(new FallbackProvider([down, down]).generate(req)).rejects.toThrow("503 | 503");
   });
 });
+
+describe("createLiveProvider", () => {
+  it("orders providers by LLM_ORDER and skips those without a key", async () => {
+    const { createLiveProvider } = await import("./index");
+    expect(createLiveProvider({ GROQ_API_KEY: "g", GEMINI_API_KEY: "x" }).name).toBe("groq");
+    expect(createLiveProvider({ GROQ_API_KEY: "g", GEMINI_API_KEY: "x", LLM_ORDER: "gemini,groq" }).name).toBe("gemini");
+    expect(createLiveProvider({ GEMINI_API_KEY: "x" }).name).toBe("gemini");
+    expect(() => createLiveProvider({})).toThrow(/ningún proveedor/);
+  });
+});

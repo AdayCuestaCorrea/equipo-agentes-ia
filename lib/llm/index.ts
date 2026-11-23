@@ -30,12 +30,18 @@ export class FallbackProvider implements LLMProvider {
   }
 }
 
-/** Live provider chain from the environment: Gemini first, then Groq, whichever have a key. */
-export function createLiveProvider(env: NodeJS.ProcessEnv = process.env): LLMProvider {
-  const chain: LLMProvider[] = [];
-  // With a backup provider, Gemini gets a shorter budget so both fit in one Vercel step (300 s).
-  const budgetMs = env.GROQ_API_KEY ? 150_000 : 200_000;
-  if (env.GEMINI_API_KEY) chain.push(new GeminiProvider({ apiKey: env.GEMINI_API_KEY, budgetMs }));
-  if (env.GROQ_API_KEY) chain.push(new GroqProvider({ apiKey: env.GROQ_API_KEY }));
+/**
+ * Live provider chain from the environment. Order comes from LLM_ORDER (default "groq,gemini":
+ * Groq answered in 1–6 s vs 18–66 s for Gemini Flash-Lite, which also returned frequent 503s).
+ * Providers without an API key are skipped.
+ */
+export function createLiveProvider(env: Record<string, string | undefined> = process.env): LLMProvider {
+  const order = (env.LLM_ORDER ?? "groq,gemini").split(",").map((s) => s.trim().toLowerCase());
+  const factories: Record<string, (() => LLMProvider) | undefined> = {
+    groq: env.GROQ_API_KEY ? () => new GroqProvider({ apiKey: env.GROQ_API_KEY }) : undefined,
+    // Shorter budget when another provider may follow, so both fit in one Vercel step (300 s).
+    gemini: env.GEMINI_API_KEY ? () => new GeminiProvider({ apiKey: env.GEMINI_API_KEY, budgetMs: 150_000 }) : undefined,
+  };
+  const chain = [...new Set(order)].flatMap((name) => factories[name]?.() ?? []);
   return chain.length === 1 ? chain[0] : new FallbackProvider(chain);
 }
