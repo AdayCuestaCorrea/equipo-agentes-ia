@@ -1,0 +1,153 @@
+{
+  "prompt": "añade una página de contacto a esta web",
+  "recordedAt": "2026-11-23T14:19:57.719Z",
+  "answers": {
+    "plan": {
+      "summary": "Añadir una página de contacto con un formulario y actualizar la navegación en todas las páginas para incluirla.",
+      "tasks": [
+        {
+          "title": "Crear la página de contacto",
+          "description": "Crear el fichero contacto.html con la estructura básica, el encabezado, la navegación con enlace activo en Contacto, un título principal y un formulario válido que incluya campos con etiquetas, un campo de email y un botón de envío.",
+          "files": [
+            "contacto.html"
+          ],
+          "acceptance": [
+            {
+              "kind": "file_exists",
+              "path": "contacto.html",
+              "selector": null,
+              "text": null,
+              "from": null,
+              "to": null,
+              "min": null
+            },
+            {
+              "kind": "form_valid",
+              "path": "contacto.html",
+              "selector": null,
+              "text": null,
+              "from": null,
+              "to": null,
+              "min": null
+            },
+            {
+              "kind": "text_contains",
+              "path": "contacto.html",
+              "selector": null,
+              "text": "Contacto",
+              "from": null,
+              "to": null,
+              "min": null
+            }
+          ]
+        },
+        {
+          "title": "Actualizar la navegación en index.html y nosotros.html",
+          "description": "Modificar los ficheros index.html y nosotros.html para añadir el enlace a contacto.html en la barra de navegación principal.",
+          "files": [
+            "index.html",
+            "nosotros.html"
+          ],
+          "acceptance": [
+            {
+              "kind": "link_exists",
+              "path": null,
+              "selector": null,
+              "text": null,
+              "from": "index.html",
+              "to": "contacto.html",
+              "min": null
+            },
+            {
+              "kind": "link_exists",
+              "path": null,
+              "selector": null,
+              "text": null,
+              "from": "nosotros.html",
+              "to": "contacto.html",
+              "min": null
+            }
+          ]
+        },
+        {
+          "title": "Verificar integridad de los enlaces de la web",
+          "description": "Comprobar que todos los enlaces internos de la web funcionan correctamente en todas las páginas existentes.",
+          "files": [
+            "index.html",
+            "nosotros.html",
+            "contacto.html"
+          ],
+          "acceptance": [
+            {
+              "kind": "links_valid",
+              "path": null,
+              "selector": null,
+              "text": null,
+              "from": null,
+              "to": null,
+              "min": null
+            }
+          ]
+        }
+      ]
+    },
+    "develop:1:1": {
+      "summary": "He creado la página contacto.html con un formulario accesible y he actualizado la navegación en todas las páginas para incluir el enlace a Contacto.",
+      "files": [
+        {
+          "path": "contacto.html",
+          "content": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Contacto · Panadería La Espiga</title>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n  <header class=\"site-header\">\n    <a class=\"brand\" href=\"index.html\">La Espiga</a>\n    <nav class=\"site-nav\" aria-label=\"Principal\">\n      <ul>\n        <li><a href=\"index.html\">Inicio</a></li>\n        <li><a href=\"nosotros.html\">Nosotros</a></li>\n        <li><a href=\"contacto.html\" aria-current=\"page\">Contacto</a></li>\n      </ul>\n    </nav>\n  </header>\n\n  <main>\n    <section class=\"page\">\n      <h1>Contacto</h1>\n      <p>¿Tienes alguna duda o quieres hacer un encargo? Escríbenos y te responderemos lo antes posible.</p>\n      <form action=\"#\" method=\"POST\" class=\"contact-form\">\n        <div class=\"form-group\">\n          <label for=\"nombre\">Nombre</label>\n          <input type=\"text\" id=\"nombre\" name=\"nombre\" required>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"email\">Correo electrónico</label>\n          <input type=\"email\" id=\"email\" name=\"email\" required>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"mensaje\">Mensaje</label>\n          <textarea id=\"mensaje\" name=\"mensaje\" rows=\"5\" required></textarea>\n        </div>\n        <button type=\"submit\" class=\"btn-submit\">Enviar mensaje</button>\n      </form>\n    </section>\n  </main>\n\n  <footer class=\"site-footer\">\n    <p>Calle del Trigo 12, Valencia · Abierto de lunes a sábado, 7:00–14:00</p>\n  </footer>\n</body>\n</html>"
+        },
+        {
+          "path": "index.html",
+          "content": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Panadería La Espiga</title>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n  <header class=\"site-header\">\n    <a class=\"brand\" href=\"index.html\">La Espiga</a>\n    <nav class=\"site-nav\" aria-label=\"Principal\">\n      <ul>\n        <li><a href=\"index.html\" aria-current=\"page\">Inicio</a></li>\n        <li><a href=\"nosotros.html\">Nosotros</a></li>\n        <li><a href=\"contacto.html\">Contacto</a></li>\n      </ul>\n    </nav>\n  </header>\n\n  <main>\n    <section class=\"hero\">\n      <h1>Pan de masa madre, horneado cada mañana</h1>\n      <p>Obrador artesano en el centro de Valencia desde 1987.</p>\n    </section>\n\n    <section class=\"products\" aria-labelledby=\"productos\">\n      <h2 id=\"productos\">Nuestros productos</h2>\n      <ul class=\"cards\">\n        <li class=\"card\"><h3>Hogaza de centeno</h3><p>Fermentación lenta de 24 horas.</p></li>\n        <li class=\"card\"><h3>Croissant de mantequilla</h3><p>Hojaldre hecho a mano.</p></li>\n        <li class=\"card\"><h3>Coca de llanda</h3><p>La receta de la abuela.</p></li>\n      </ul>\n    </section>\n  </main>\n\n  <footer class=\"site-footer\">\n    <p>Calle del Trigo 12, Valencia · Abierto de lunes a sábado, 7:00–14:00</p>\n  </footer>\n</body>\n</html>"
+        },
+        {
+          "path": "nosotros.html",
+          "content": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Nosotros · Panadería La Espiga</title>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n  <header class=\"site-header\">\n    <a class=\"brand\" href=\"index.html\">La Espiga</a>\n    <nav class=\"site-nav\" aria-label=\"Principal\">\n      <ul>\n        <li><a href=\"index.html\">Inicio</a></li>\n        <li><a href=\"nosotros.html\" aria-current=\"page\">Nosotros</a></li>\n        <li><a href=\"contacto.html\">Contacto</a></li>\n      </ul>\n    </nav>\n  </header>\n\n  <main>\n    <section class=\"page\">\n      <h1>Nosotros</h1>\n      <p>Somos una familia de panaderos. Tres generaciones amasando a mano con harinas de molinos locales.</p>\n      <p>Trabajamos sin aditivos y con fermentaciones largas para que el pan dure más y sepa mejor.</p>\n    </section>\n  </main>\n\n  <footer class=\"site-footer\">\n    <p>Calle del Trigo 12, Valencia · Abierto de lunes a sábado, 7:00–14:00</p>\n  </footer>\n</body>\n</html>"
+        },
+        {
+          "path": "styles.css",
+          "content": ":root {\n  --bg: #fffaf3;\n  --text: #2b2118;\n  --muted: #6b5a4a;\n  --accent: #b5651d;\n  --card: #ffffff;\n  --radius: 12px;\n}\n\n* { box-sizing: border-box; }\n\nbody {\n  margin: 0;\n  font-family: system-ui, -apple-system, \"Segoe UI\", sans-serif;\n  background: var(--bg);\n  color: var(--text);\n  line-height: 1.6;\n}\n\n.site-header {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 1rem 1.5rem;\n  border-bottom: 1px solid #ecdcc8;\n}\n\n.brand { font-weight: 700; font-size: 1.25rem; color: var(--accent); text-decoration: none; }\n\n.site-nav ul { display: flex; gap: 1.25rem; list-style: none; margin: 0; padding: 0; }\n.site-nav a { color: var(--text); text-decoration: none; }\n.site-nav a[aria-current=\"page\"] { color: var(--accent); font-weight: 600; }\n\nmain { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }\n\n.hero h1 { font-size: 2rem; margin: 0 0 .5rem; }\n.hero p, .page p { color: var(--muted); }\n\n.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; list-style: none; padding: 0; }\n.card { background: var(--card); border-radius: var(--radius); padding: 1rem 1.25rem; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }\n.card h3 { margin: 0 0 .25rem; }\n\n.site-footer { text-align: center; padding: 1.5rem; color: var(--muted); font-size: .9rem; border-top: 1px solid #ecdcc8; }\n\n.contact-form { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; max-width: 500px; }\n.form-group { display: flex; flex-direction: column; gap: 0.35rem; }\n.form-group label { font-weight: 600; font-size: 0.95rem; }\n.form-group input, .form-group textarea { padding: 0.75rem; border: 1px solid #ecdcc8; border-radius: var(--radius); background: var(--card); font-family: inherit; font-size: 1rem; color: var(--text); }\n.form-group input:focus, .form-group textarea:focus { outline: 2px solid var(--accent); }\n.btn-submit { background: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem; font-size: 1rem; font-weight: 600; border-radius: var(--radius); cursor: pointer; align-self: flex-start; }\n.btn-submit:hover { opacity: 0.9; }"
+        }
+      ]
+    },
+    "review:1:1": {
+      "verdict": "pass",
+      "summary": "Entrega cumple con la tarea: la página contacto.html existe, contiene título y formulario válido, navegación con enlace activo, contenido coherente y accesibilidad básica.",
+      "issues": []
+    },
+    "develop:2:1": {
+      "summary": "Se añadió la clase \"nav-link\" a los enlaces de navegación en index.html y nosotros.html para actualizar la barra y asegurar la presencia del enlace a contacto.html.",
+      "files": [
+        {
+          "path": "index.html",
+          "content": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Panadería La Espiga</title>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n  <header class=\"site-header\">\n    <a class=\"brand\" href=\"index.html\">La Espiga</a>\n    <nav class=\"site-nav\" aria-label=\"Principal\">\n      <ul>\n        <li><a class=\"nav-link\" href=\"index.html\" aria-current=\"page\">Inicio</a></li>\n        <li><a class=\"nav-link\" href=\"nosotros.html\">Nosotros</a></li>\n        <li><a class=\"nav-link\" href=\"contacto.html\">Contacto</a></li>\n      </ul>\n    </nav>\n  </header>\n\n  <main>\n    <section class=\"hero\">\n      <h1>Pan de masa madre, horneado cada mañana</h1>\n      <p>Obrador artesano en el centro de Valencia desde 1987.</p>\n    </section>\n\n    <section class=\"products\" aria-labelledby=\"productos\">\n      <h2 id=\"productos\">Nuestros productos</h2>\n      <ul class=\"cards\">\n        <li class=\"card\"><h3>Hogaza de centeno</h3><p>Fermentación lenta de 24 horas.</p></li>\n        <li class=\"card\"><h3>Croissant de mantequilla</h3><p>Hojaldre hecho a mano.</p></li>\n        <li class=\"card\"><h3>Coca de llanda</h3><p>La receta de la abuela.</p></li>\n      </ul>\n    </section>\n  </main>\n\n  <footer class=\"site-footer\">\n    <p>Calle del Trigo 12, Valencia · Abierto de lunes a sábado, 7:00–14:00</p>\n  </footer>\n</body>\n</html>"
+        },
+        {
+          "path": "nosotros.html",
+          "content": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Nosotros · Panadería La Espiga</title>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n  <header class=\"site-header\">\n    <a class=\"brand\" href=\"index.html\">La Espiga</a>\n    <nav class=\"site-nav\" aria-label=\"Principal\">\n      <ul>\n        <li><a class=\"nav-link\" href=\"index.html\">Inicio</a></li>\n        <li><a class=\"nav-link\" href=\"nosotros.html\" aria-current=\"page\">Nosotros</a></li>\n        <li><a class=\"nav-link\" href=\"contacto.html\">Contacto</a></li>\n      </ul>\n    </nav>\n  </header>\n\n  <main>\n    <section class=\"page\">\n      <h1>Nosotros</h1>\n      <p>Somos una familia de panaderos. Tres generaciones amasando a mano con harinas de molinos locales.</p>\n      <p>Trabajamos sin aditivos y con fermentaciones largas para que el pan dure más y sepa mejor.</p>\n    </section>\n  </main>\n\n  <footer class=\"site-footer\">\n    <p>Calle del Trigo 12, Valencia · Abierto de lunes a sábado, 7:00–14:00</p>\n  </footer>\n</body>\n</html>"
+        }
+      ]
+    },
+    "review:2:1": {
+      "verdict": "pass",
+      "summary": "La entrega cumple los criterios de aceptación: se añadió el enlace a contacto.html en la barra de navegación de index.html y nosotros.html. El contenido es coherente con el resto del sitio y la accesibilidad básica (lang, aria‑label, aria‑current) está correctamente implementada. No se detectan bloqueos.",
+      "issues": []
+    },
+    "develop:3:1": {
+      "summary": "Se añadió la clase nav-link a los enlaces de navegación en contacto.html para mantener la consistencia y asegurar que todos los enlaces internos son válidos.",
+      "files": [
+        {
+          "path": "contacto.html",
+          "content": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Contacto · Panadería La Espiga</title>\n  <link rel=\"stylesheet\" href=\"styles.css\">\n</head>\n<body>\n  <header class=\"site-header\">\n    <a class=\"brand\" href=\"index.html\">La Espiga</a>\n    <nav class=\"site-nav\" aria-label=\"Principal\">\n      <ul>\n        <li><a class=\"nav-link\" href=\"index.html\">Inicio</a></li>\n        <li><a class=\"nav-link\" href=\"nosotros.html\">Nosotros</a></li>\n        <li><a class=\"nav-link\" href=\"contacto.html\" aria-current=\"page\">Contacto</a></li>\n      </ul>\n    </nav>\n  </header>\n\n  <main>\n    <section class=\"page\">\n      <h1>Contacto</h1>\n      <p>¿Tienes alguna duda o quieres hacer un encargo? Escríbenos y te responderemos lo antes posible.</p>\n      <form action=\"#\" method=\"POST\" class=\"contact-form\">\n        <div class=\"form-group\">\n          <label for=\"nombre\">Nombre</label>\n          <input type=\"text\" id=\"nombre\" name=\"nombre\" required>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"email\">Correo electrónico</label>\n          <input type=\"email\" id=\"email\" name=\"email\" required>\n        </div>\n        <div class=\"form-group\">\n          <label for=\"mensaje\">Mensaje</label>\n          <textarea id=\"mensaje\" name=\"mensaje\" rows=\"5\" required></textarea>\n        </div>\n        <button type=\"submit\" class=\"btn-submit\">Enviar mensaje</button>\n      </form>\n    </section>\n  </main>\n\n  <footer class=\"site-footer\">\n    <p>Calle del Trigo 12, Valencia · Abierto de lunes a sábado, 7:00–14:00</p>\n  </footer>\n</body>\n</html>"
+        }
+      ]
+    },
+    "review:3:1": {
+      "verdict": "pass",
+      "summary": "La página de contacto cumple perfectamente con la petición del usuario y los criterios de aceptación. El contenido es coherente con el tono de la panadería, la estructura HTML es accesible y los enlaces internos funcionan correctamente.",
+      "issues": []
+    }
+  }
+}

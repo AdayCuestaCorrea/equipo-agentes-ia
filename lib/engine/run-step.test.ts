@@ -3,6 +3,7 @@ import { MemoryRepo } from "@/lib/db/memory-repo";
 import { runChecks } from "@/lib/checks";
 import { DemoProvider } from "@/lib/llm/demo";
 import { LLMUnavailableError, type LLMProvider } from "@/lib/llm/types";
+import demoRun from "@/fixtures/demo-run.json";
 import { contactRecording } from "./__fixtures__/contact-run";
 import { createRun, MAX_CONSECUTIVE_ERRORS, runStep, type EngineDeps } from "./run-step";
 
@@ -60,6 +61,17 @@ describe("full run in memory (Orchestrator → Develop ↔ Testing)", () => {
 
     // A finished run does nothing more.
     expect(await runStep(deps, run.id)).toEqual({ status: "busy" });
+  });
+
+  it("replays the recorded live run used by demo mode to a finished state", async () => {
+    const repo = new MemoryRepo();
+    const deps = { repo, llm: new DemoProvider(demoRun.answers) };
+    const run = await createRun(deps, { prompt: demoRun.prompt, userId: null, mode: "demo" });
+
+    await drive(deps, run.id);
+    const final = (await repo.getRun(run.id))!;
+    expect(final.status).toBe("done");
+    expect(Object.keys(await repo.getFiles(run.id, final.currentVersion))).toContain("contacto.html");
   });
 
   it("closes a task as failed after 3 rejected attempts and finishes with failures", async () => {
