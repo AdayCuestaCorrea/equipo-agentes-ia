@@ -36,6 +36,7 @@ async function main() {
     printed = repo.events.length;
     if (outcome.status !== "executed" && outcome.status !== "error") break;
     if (!outcome.more) break;
+    if (outcome.status === "error") await new Promise((r) => setTimeout(r, 10_000));
   }
 
   const final = (await repo.getRun(run.id))!;

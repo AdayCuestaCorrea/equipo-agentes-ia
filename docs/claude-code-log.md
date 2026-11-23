@@ -39,3 +39,19 @@ Registro vivo para la sección «Cómo usé Claude Code» del README. Fechas en 
   - Lo descubrió el test «reports unclosed and misnested tags», escrito antes de comprobar la API.
   - La IA lo verificó con un script de prueba y añadió `nestingProblems`: una pila de etiquetas que respeta los elementos vacíos y los de cierre opcional, e ignora comentarios, `<script>`/`<style>` y atributos. Lleva tests propios para los falsos positivos.
   - Lección para el README: un check «el HTML parsea» no sirve de nada si el parser es tolerante.
+
+## 2026-11-23 — Fase 3: agentes, LLM y motor
+
+- **Diseño**:
+  - Interfaz `LLMProvider`, con `GeminiProvider`, `DemoProvider` (reproduce respuestas grabadas) y `RecordingProvider` (graba una ejecución real).
+  - Motor `runStep`: un paso por llamada, con lease, reintentos y tope de errores seguidos.
+  - `MemoryRepo` para tests.
+  - Test de ejecución completa en memoria: plan → fallo (input sin label) → corrección → integración.
+- **Decisión de la IA**: para el LLM, los criterios del plan son objetos planos con campos `null` en vez de una unión discriminada (`anyOf` no figura entre las palabras clave que documenta Gemini). Se normalizan después al esquema estricto del dominio.
+- **Fallo de diseño cazado al escribir un test**: los checks globales recorrían toda la web, así que una tarea fallida «contagiaba» a las siguientes. Ahora Testing solo aplica los checks globales a los ficheros que cambió cada tarea; la integración final sí revisa toda la web.
+- **Primera ejecución real contra Gemini** (script `npm run record-demo`). Cuatro hallazgos:
+  1. `400 schema produces a constraint that has too many states`: Gemini compila `minItems`/`maxItems` en su decodificador. Se quitan del esquema enviado y zod los sigue validando.
+  2. `This operation was aborted`: el SDK convierte el timeout en un `AbortError`, que no se trataba como «modelo no disponible». Corregido.
+  3. **Yo consulté los límites gratuitos en AI Studio**: gemini-3.8-flash permite 5 RPM y **20 RPD**; gemini-3.5-flash-lite, 15 RPM y 500 RPD. Con 7–19 llamadas por ejecución, 3.8 Flash daría para una ejecución al día. **Cambio de plan**: Flash-Lite pasa a ser el principal y 3.8 Flash el respaldo.
+  4. 503 «high demand» persistentes en ambos modelos. Ahora hay backoff (2 s y 6 s), se respeta el `retryDelay` de los 429 por minuto y se salta al otro modelo si se agota la cuota diaria. Hay un presupuesto de 200 s por llamada para no pasar del límite de Vercel. El motor trata la indisponibilidad como error transitorio: 3 intentos y después `failed` con un mensaje claro.
+- **Plan mal ordenado por el LLM**: puso «enlazar en el menú» antes de «crear la página», y esa tarea fallaría siempre en el check de enlaces. Se añadió al prompt del Orquestador que cada tarea se prueba nada más terminarla y que no puede depender de una posterior.
