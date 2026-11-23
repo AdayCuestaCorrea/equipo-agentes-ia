@@ -12,6 +12,7 @@ create table if not exists public.runs (
                   check (status in ('queued','planning','running','integrating','done','done_with_failures','failed')),
   mode            text not null default 'live' check (mode in ('live','demo')),
   current_version int  not null default 0,
+  step_count      int  not null default 0,
   locked_until    timestamptz not null default 'epoch',
   error           text,
   is_showcase     boolean not null default false,
