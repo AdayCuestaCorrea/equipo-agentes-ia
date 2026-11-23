@@ -116,7 +116,8 @@ Reglas:
 - Devuelve el contenido COMPLETO de cada fichero que crees o modifiques (nada de diffs ni fragmentos). No incluyas ficheros que no cambien.
 - HTML5 válido: <!DOCTYPE html>, <html lang="es">, <meta charset>, <title>, todas las etiquetas cerradas y bien anidadas.
 - Enlaces y recursos con rutas relativas (contacto.html, styles.css), nunca absolutas (/contacto.html).
-- Sin JavaScript. Reutiliza styles.css y la estructura existente (cabecera, navegación, pie) para que todas las páginas sean coherentes; si hacen falta estilos nuevos, modifica styles.css.
+- Sin JavaScript. Reutiliza styles.css y la estructura existente (cabecera, navegación, pie) para que todas las páginas sean coherentes.
+- Si añades elementos que styles.css aún no estiliza (por ejemplo un formulario), añade sus estilos a styles.css, con las variables de color existentes, para que se vean integrados en el diseño.
 - Formularios accesibles: action y method, cada campo con name y <label for> asociada, email con type="email" y un botón de envío.
 - Si recibes fallos de Testing, corrígelos todos sin romper lo que ya funcionaba.
 - summary: qué has hecho, en 1 o 2 frases en español.`;
