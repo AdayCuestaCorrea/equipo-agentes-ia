@@ -100,3 +100,19 @@ Registro vivo para la sección «Cómo usé Claude Code» del README. Fechas en 
   - El overlay de Next marcó `Date.now()` durante el prerender: lo llama el cliente de Supabase al crearse. Se añadió `await connection()`, la solución que indica la documentación.
 - **Calidad del resultado**: el formulario que generó Develop en vivo salió sin estilos. Se añadió al prompt que estilice en `styles.css` los elementos nuevos.
 - **Pendiente**: no se pudo comprobar la vista móvil, porque la ventana del navegador no cambiaba de tamaño.
+
+## 2026-11-23 — Fase 7: despliegue
+
+- **Revisión de secretos en el historial** antes de subir nada: ni claves (`AIza`, `gsk_`, `sb_`, JWT), ni la URL de Supabase, ni la contraseña de prueba. Solo aparecía mi gmail como autor. **Decisión mía**: reescribir la autoría con la dirección noreply de GitHub (`git filter-branch`, antes del primer push).
+- Repo privado `equipo-agentes-ia` creado con `gh`.
+- **Primer despliegue**:
+  - El proyecto de Vercel se había creado desde la carpeta y no desde el repo, así que los push no desplegaban. Lo conecté a GitHub desde Settings → Git.
+  - La URL que pasé al principio era la de un despliegue concreto, protegida con login de Vercel. La IA comprobó cuál era la de producción pública.
+- **Fallo en producción**: con el navegador cerrado, las ejecuciones se paraban tras un error transitorio. Lo que pasó:
+  1. La IA vio en la BD que el último paso había terminado bien y que faltaba el salto a la siguiente invocación.
+  2. Primera hipótesis de la IA, **equivocada**: la protección de Vercel contra bucles (508). La verificó en la documentación (existe, pero sin umbral documentado) y aplicó un cambio que resultó útil de todos modos: varios pasos por invocación con un presupuesto blando de 60 s, así que una ejecución típica no hace ningún salto HTTP.
+  3. Siguió fallando, y la IA me pidió los logs de Vercel en vez de seguir suponiendo. El único error era `Falta STEP_SECRET`: **yo había olvidado esa variable** (y `CRON_SECRET`) en Vercel.
+  4. Fallo de la IA destapado por esto: la excepción escapaba del `after()` antes de registrar nada en la BD. Ahora un salto fallido siempre deja un evento de error visible, y la página reanuda la ejecución.
+- **Prueba final en producción, sin navegador**: `done` en 132 s. Incluyó un 429/503 de los dos proveedores, la pausa, un salto a una invocación nueva y la integración 11/11. Esa ejecución es la destacada de la portada (`npm run set-showcase`).
+- **Nombres de fichero**: el Orquestador llamó a la página `contact.html` en una web en español. Se añadió al prompt que los ficheros nuevos se nombran en español.
+- Cron `/api/cron/keepalive` verificado: 200 con el secreto y 401 sin él.
