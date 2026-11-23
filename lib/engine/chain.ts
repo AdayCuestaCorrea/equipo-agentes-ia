@@ -13,8 +13,11 @@ export interface ChainOptions {
 
 /**
  * Runs consecutive engine steps inside one serverless invocation while the soft budget lasts,
- * and only then hands off to a new invocation. Few self-requests per run means Vercel's loop
- * protection (508 INFINITE_LOOP_DETECTED) is not tripped, which a request per step did in production.
+ * and only then hands off to a new invocation, so a typical run needs no self-request at all
+ * (fewer hops to lose, and no risk of Vercel's 508 loop protection).
+ *
+ * In production a missing STEP_SECRET made the hand-off throw inside after(), which ended runs
+ * with no trace in the database; a failed hand-off now always leaves an error event.
  *
  * Budget: soft 60 s + one worst-case step (~200 s with provider retries) < 300 s Hobby limit.
  */
@@ -30,7 +33,12 @@ export async function runChain(deps: EngineDeps, runId: string, opts: ChainOptio
     if (outcome.status === "busy" || !outcome.more) return outcomes;
     if (outcome.status === "error") await sleep(opts.retryPauseMs);
     if (now() - started >= opts.softBudgetMs) {
-      if (!(await opts.handOff())) {
+      // A throwing hand-off must not escape: it would end the run silently inside after().
+      const handedOff = await opts.handOff().catch((err) => {
+        console.error(`Hand-off de ${runId}:`, err);
+        return false;
+      });
+      if (!handedOff) {
         await deps.repo.addEvent({
           runId,
           agent: "orchestrator",

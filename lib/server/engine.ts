@@ -23,11 +23,15 @@ export const isDemoPrompt = (prompt: string) =>
 
 /**
  * Starts a new invocation of the step endpoint, authenticated with STEP_SECRET.
- * Checks the answer (a 508 from Vercel's loop protection used to be lost silently) and retries once.
+ * Checks the HTTP answer and retries once; any failure returns false so the chain records it.
  */
 export async function triggerStep(origin: string, runId: string): Promise<boolean> {
   const secret = process.env.STEP_SECRET;
-  if (!secret) throw new Error("Falta STEP_SECRET");
+  if (!secret) {
+    // Returning (not throwing) lets the chain record a visible error event for the run.
+    console.error(`Encadenar ${runId}: falta la variable de entorno STEP_SECRET`);
+    return false;
+  }
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       const res = await fetch(`${origin}/api/runs/${runId}/step`, {

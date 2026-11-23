@@ -38,9 +38,18 @@ describe("runChain", () => {
     expect((await repo.getRun(runId))!.status).toBe("running");
   });
 
-  it("records a visible error when the hand-off fails (e.g. HTTP 508 loop protection)", async () => {
+  it("records a visible error when the hand-off fails (e.g. HTTP error)", async () => {
     const { repo, deps, runId } = await setup();
     await runChain(deps, runId, { softBudgetMs: 1, retryPauseMs: 0, handOff: async () => false, ...clock(10) });
+    expect(repo.events.at(-1)).toMatchObject({ type: "error", message: expect.stringMatching(/No se pudo encadenar/) });
+  });
+
+  it("records the error when the hand-off throws instead of ending silently", async () => {
+    const { repo, deps, runId } = await setup();
+    const handOff = async (): Promise<boolean> => {
+      throw new Error("Falta STEP_SECRET");
+    };
+    await runChain(deps, runId, { softBudgetMs: 1, retryPauseMs: 0, handOff, ...clock(10) });
     expect(repo.events.at(-1)).toMatchObject({ type: "error", message: expect.stringMatching(/No se pudo encadenar/) });
   });
 
