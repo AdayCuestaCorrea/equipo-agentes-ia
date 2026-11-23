@@ -84,3 +84,19 @@ Registro vivo para la sección «Cómo usé Claude Code» del README. Fechas en 
 - **Primer bucle Develop↔Testing real, por un falso positivo del revisor LLM**: dijo que «no se creó contacto.html» en la tarea de enlazar desde nosotros, cuando la página existía desde la tarea 1. El revisor solo veía los ficheros cambiados. Develop la regeneró sin necesidad.
   - Arreglo: el prompt de Testing evalúa solo la tarea actual, recibe los títulos de las otras tareas del plan y la lista de ficheros que ya existen.
   - Es un buen ejemplo de por qué los checks deterministas mandan y el LLM es una segunda opinión.
+
+## 2026-11-23 — Fases 5 y 6: UI, login y nueva petición
+
+- **Antes de escribir páginas**, la IA leyó la documentación incluida en Next 16, como pide `AGENTS.md`:
+  - Con Cache Components, las lecturas dinámicas (`params`, BD, cookies) van dentro de `<Suspense>`.
+  - `middleware.ts` ahora se llama `proxy.ts`.
+- **Página de ejecución**: un componente de servidor carga la instantánea inicial y un componente de cliente se suscribe a Supabase Realtime. Cualquier cambio vuelve a pedir la instantánea, con un debounce de 250 ms. Si el canal cae, polling cada 3 s. Si la ejecución lleva más de 60 s sin eventos, la página «despierta» la cadena de pasos.
+- **Verificado en el navegador** (Claude in Chrome):
+  - El tablero se mueve solo durante una ejecución, con el indicador «En directo».
+  - La vista previa navega entre páginas.
+  - El login lleva a la portada con sesión, y el botón de demo abre la ejecución.
+- **Cosas que corrigió el propio entorno**:
+  - Lint marcó un `setState` dentro de un efecto. Ahora la versión seguida se deriva del estado.
+  - El overlay de Next marcó `Date.now()` durante el prerender: lo llama el cliente de Supabase al crearse. Se añadió `await connection()`, la solución que indica la documentación.
+- **Calidad del resultado**: el formulario que generó Develop en vivo salió sin estilos. Se añadió al prompt que estilice en `styles.css` los elementos nuevos.
+- **Pendiente**: no se pudo comprobar la vista móvil, porque la ventana del navegador no cambiaba de tamaño.
