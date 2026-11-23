@@ -1,13 +1,33 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { AgentAvatar, RunStatusBadge } from "@/components/run/ui";
 import type { RunStatus } from "@/lib/domain/types";
 import { AGENT_LABEL, AGENT_ROLE } from "@/lib/runs/labels";
 import { publicClient } from "@/lib/supabase/public";
+import { NewRunForm } from "@/components/home/new-run-form";
+import { currentUser } from "@/lib/server/auth";
+import { DEMO_PROMPT } from "@/lib/server/engine";
 
 type RunRow = { id: string; prompt: string; status: RunStatus; mode: string; created_at: string; is_showcase: boolean };
 
+/** Signed-in users can launch runs; visitors see how to get access. Reads cookies → behind Suspense. */
+async function NewRunPanel() {
+  const user = await currentUser();
+  if (user) return <NewRunForm demoPrompt={DEMO_PROMPT} demoOnly={process.env.DEMO_MODE === "true"} />;
+  return (
+    <p className="rounded-xl border border-dashed border-zinc-300 bg-white p-5 text-sm text-zinc-600">
+      Para lanzar peticiones nuevas,{" "}
+      <Link href="/login" className="font-medium text-sky-700 hover:underline">
+        entra con el usuario de prueba
+      </Link>
+      . Sin cuenta puedes ver la ejecución de ejemplo de abajo.
+    </p>
+  );
+}
+
 async function Showcase() {
+  await connection(); // always fresh; the Supabase client also reads the clock
   const db = publicClient();
   const { data: featured } = await db
     .from("runs")
@@ -90,6 +110,12 @@ export default function Home() {
           </li>
         ))}
       </ol>
+
+      <div className="mt-8">
+        <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-zinc-200" />}>
+          <NewRunPanel />
+        </Suspense>
+      </div>
 
       <div className="mt-8">
         <Suspense fallback={<div className="h-28 animate-pulse rounded-xl bg-zinc-200" />}>

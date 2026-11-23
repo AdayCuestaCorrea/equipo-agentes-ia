@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { RunView } from "@/components/run/run-view";
 import { loadSnapshot } from "@/lib/runs/snapshot";
@@ -9,6 +10,7 @@ export const metadata = { title: "Ejecución · Equipo de agentes" };
 
 async function RunLoader({ params }: { params: PageProps<"/runs/[id]">["params"] }) {
   const { id } = await params;
+  await connection();
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const snapshot = await loadSnapshot(publicClient(), id);
   if (!snapshot) notFound();
