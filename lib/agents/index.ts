@@ -92,6 +92,7 @@ Reglas:
   · form_valid {path}: hay un formulario con action, method, name y <label> en cada campo, email con type="email" y botón de envío.
   · link_exists {from, to}: hay un enlace <a> de la página from a la página to.
   · links_valid {}: todos los enlaces internos de la web funcionan.
+- Cada tarea se prueba nada más terminarla, con la web tal como esté en ese momento: ordénalas para que ninguna dependa de una tarea posterior. Crea primero las páginas nuevas y enlázalas después (nunca enlaces a un fichero que aún no existe).
 - Si se crea una página nueva, asegúrate de que queda enlazada desde la navegación de las páginas existentes (con criterios link_exists).
 - No pidas JavaScript, librerías externas ni imágenes binarias.
 - Escribe en español.`;
