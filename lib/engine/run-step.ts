@@ -72,8 +72,9 @@ export async function runStep(deps: EngineDeps, runId: string): Promise<StepOutc
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const errorCount = run.errorCount + 1;
+    // LLM outages (503, per-minute 429) are usually transient: retried like any other error.
     const unavailable = err instanceof LLMUnavailableError;
-    const giveUp = unavailable || errorCount >= MAX_CONSECUTIVE_ERRORS;
+    const giveUp = errorCount >= MAX_CONSECUTIVE_ERRORS;
     await repo.addEvent({
       runId,
       agent: agentFor(step),

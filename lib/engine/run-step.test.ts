@@ -88,7 +88,7 @@ describe("full run in memory (Orchestrator → Develop ↔ Testing)", () => {
     expect(repo.events.some((e) => e.message.startsWith("Revisión con LLM no disponible"))).toBe(true);
   });
 
-  it("fails the run with a clear error when the LLM is unavailable", async () => {
+  it("fails the run with a clear error when the LLM stays unavailable", async () => {
     const down: LLMProvider = {
       name: "gemini",
       generate: async () => {
@@ -99,7 +99,7 @@ describe("full run in memory (Orchestrator → Develop ↔ Testing)", () => {
     const deps = { repo, llm: down };
     const run = await createRun(deps, { prompt: "añade una página de contacto", userId: null, mode: "live" });
 
-    expect(await drive(deps, run.id)).toEqual(["error:plan"]);
+    expect(await drive(deps, run.id)).toEqual(Array(MAX_CONSECUTIVE_ERRORS).fill("error:plan"));
     expect((await repo.getRun(run.id))!).toMatchObject({ status: "failed", error: expect.stringMatching(/no está disponible/) });
   });
 
