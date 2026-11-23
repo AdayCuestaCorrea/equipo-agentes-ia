@@ -1,5 +1,5 @@
 /**
- * Runs a real request end to end against Gemini (in memory, no database) and saves the
+ * Runs a real request end to end against the live LLM chain (Gemini → Groq) (in memory, no database) and saves the
  * LLM answers as the demo-mode recording.
  *
  *   npm run record-demo                         # example request → fixtures/demo-run.json
@@ -10,7 +10,7 @@ import path from "node:path";
 import { MemoryRepo } from "@/lib/db/memory-repo";
 import { createRun, runStep } from "@/lib/engine/run-step";
 import { RecordingProvider } from "@/lib/llm/demo";
-import { GeminiProvider } from "@/lib/llm/gemini";
+import { createLiveProvider } from "@/lib/llm";
 
 export const EXAMPLE_REQUEST = "añade una página de contacto a esta web";
 
@@ -21,7 +21,7 @@ async function main() {
   const prompt = args[0] ?? EXAMPLE_REQUEST;
 
   const repo = new MemoryRepo();
-  const llm = new RecordingProvider(new GeminiProvider());
+  const llm = new RecordingProvider(createLiveProvider());
   const deps = { repo, llm };
   const run = await createRun(deps, { prompt, userId: null, mode: "live" });
   console.log(`▶ «${prompt}»`);
