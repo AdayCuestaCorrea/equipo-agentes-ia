@@ -38,9 +38,12 @@ export class FallbackProvider implements LLMProvider {
 export function createLiveProvider(env: Record<string, string | undefined> = process.env): LLMProvider {
   const order = (env.LLM_ORDER ?? "groq,gemini").split(",").map((s) => s.trim().toLowerCase());
   const factories: Record<string, (() => LLMProvider) | undefined> = {
-    groq: env.GROQ_API_KEY ? () => new GroqProvider({ apiKey: env.GROQ_API_KEY }) : undefined,
-    // Shorter budget when another provider may follow, so both fit in one Vercel step (300 s).
-    gemini: env.GEMINI_API_KEY ? () => new GeminiProvider({ apiKey: env.GEMINI_API_KEY, budgetMs: 150_000 }) : undefined,
+    // Worst case per call: Groq ≤ 60 s + 15 s wait, then Gemini ≤ 120 s. Plus the 60 s soft
+    // budget of lib/engine/chain.ts this stays under Vercel Hobby's 300 s.
+    groq: env.GROQ_API_KEY ? () => new GroqProvider({ apiKey: env.GROQ_API_KEY, timeoutMs: 60_000 }) : undefined,
+    gemini: env.GEMINI_API_KEY
+      ? () => new GeminiProvider({ apiKey: env.GEMINI_API_KEY, budgetMs: 120_000, timeoutMs: 55_000 })
+      : undefined,
   };
   const chain = [...new Set(order)].flatMap((name) => factories[name]?.() ?? []);
   return chain.length === 1 ? chain[0] : new FallbackProvider(chain);
