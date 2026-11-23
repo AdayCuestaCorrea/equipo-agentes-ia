@@ -36,9 +36,17 @@ export async function triggerStep(origin: string, runId: string) {
   }
 }
 
+/**
+ * After a failed step, wait before retrying: free-tier limits are per minute (Groq 8K TPM),
+ * so retrying instantly would burn the consecutive-error allowance in seconds.
+ */
+export const RETRY_PAUSE_MS = 20_000;
+
 /** Runs one engine step and, if the run continues, schedules the next one in a fresh invocation. */
 export async function stepAndChain(origin: string, runId: string, mode: RunMode) {
   const outcome = await runStep(engineDeps(mode), runId);
-  if (outcome.status !== "busy" && outcome.more) await triggerStep(origin, runId);
+  if (outcome.status === "busy" || !outcome.more) return outcome;
+  if (outcome.status === "error") await new Promise((r) => setTimeout(r, RETRY_PAUSE_MS));
+  await triggerStep(origin, runId);
   return outcome;
 }
