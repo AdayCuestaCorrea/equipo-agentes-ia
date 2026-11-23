@@ -69,3 +69,18 @@ Registro vivo para la sección «Cómo usé Claude Code» del README. Fechas en 
   - El bucle queda demostrado por los tests y por las ejecuciones en vivo cuando ocurra.
 - **Orden de proveedores** (decisión mía, a propuesta de la IA): Groq → Gemini, configurable con `LLM_ORDER`. Groq tarda 1–20 s por llamada; Gemini Flash-Lite, 18–66 s, y da 503 frecuentes.
 - **Hallazgo en las regrabaciones**: con ejecuciones seguidas, Groq devuelve 429 (8K tokens/min). En la app el siguiente paso se encadenaba al instante, así que 3 errores seguidos llegarían en segundos. Ahora hay una pausa de 20 s antes de reintentar un paso fallido.
+
+## 2026-11-23 — Fase 4: persistencia y ejecución por HTTP
+
+- **Script de humo** `npm run smoke -- demo|live`: inicia sesión con `@supabase/ssr` (cookies con el mismo formato que el navegador), crea la ejecución por HTTP, sigue los eventos en la BD y comprueba la vista previa. Las credenciales se pasan por variables de entorno; nunca se escriben en un fichero.
+- **Primer fallo contra Supabase**: `permission denied for table runs` con la service role. No era RLS: las tablas creadas por SQL no tenían GRANT para los roles de la API.
+  - Al revisarlo, la IA vio además un **fallo suyo**: 0001 quitaba a `PUBLIC` el permiso de ejecutar las funciones de lease sin dárselo a `service_role`.
+  - Corregido con `0002_grants.sql`, que yo ejecuté.
+- **Demo por HTTP**: `done` en 23 s, con 8 pasos, cada uno en su propia invocación encadenada con `after()`.
+- **En vivo por HTTP**: `done` en 111 s, 3/3 tareas, 4 versiones. Se activaron todas las defensas:
+  - Groq dio 429 y respondió Gemini (respaldo entre proveedores).
+  - Ambos proveedores estuvieron saturados durante una revisión y decidieron los checks deterministas.
+  - Un error a los 61 s se reanudó tras la pausa de 20 s.
+- **Primer bucle Develop↔Testing real, por un falso positivo del revisor LLM**: dijo que «no se creó contacto.html» en la tarea de enlazar desde nosotros, cuando la página existía desde la tarea 1. El revisor solo veía los ficheros cambiados. Develop la regeneró sin necesidad.
+  - Arreglo: el prompt de Testing evalúa solo la tarea actual, recibe los títulos de las otras tareas del plan y la lista de ficheros que ya existen.
+  - Es un buen ejemplo de por qué los checks deterministas mandan y el LLM es una segunda opinión.
