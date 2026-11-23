@@ -33,11 +33,11 @@ flowchart LR
 
   O & D & T --> LLM[(Groq → Gemini<br/>JSON validado con zod)]
   RS <-->|lease atómico, estado, eventos,<br/>versiones de ficheros| DB[(Supabase Postgres)]
-  CH -.->|si se agota el presupuesto:<br/>POST /step con STEP_SECRET| API2[/api/runs/id/step/]
+  CH -.->|si se agota el presupuesto:<br/>POST /step con STEP_SECRET| API2["POST /api/runs/{id}/step"]
   API2 --> CH
 
   DB -->|Realtime: Postgres Changes| UI[Página de la ejecución<br/>agentes · tablero · conversación]
-  UI -->|iframe sandbox| PV[/preview/run/versión/fichero<br/>sirve la web desde la BD/]
+  UI -->|iframe sandbox| PV["/preview/{run}/{versión}/{fichero}<br/>sirve la web desde la BD"]
 ```
 
 **Flujo de una ejecución:**
