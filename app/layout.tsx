@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
+import { UserMenu } from "@/components/auth/user-menu";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +38,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </span>
               Equipo de agentes
             </Link>
+            <Suspense fallback={null}>
+              <UserMenu />
+            </Suspense>
           </div>
         </header>
         {children}
