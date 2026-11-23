@@ -7,7 +7,9 @@ const isObj = (v: unknown): v is Json => typeof v === "object" && v !== null && 
 /**
  * JSON Schema for structured-output APIs (Gemini's `responseJsonSchema`, OpenAI-style providers).
  * zod emits `anyOf: [X, {type: "null"}]` for some nullables and `Number.MAX_SAFE_INTEGER` bounds;
- * both are rewritten to the simpler subset providers document. Output is always re-validated with zod.
+ * both are rewritten to the simpler subset providers document. Array bounds are dropped: Gemini
+ * compiles them into its decoder and rejects the plan schema with "too many states" (seen live).
+ * Output is always re-validated with zod, so no constraint is lost.
  */
 export function toProviderSchema(schema: z.ZodType): Json {
   const { $schema: _ignored, ...root } = z.toJSONSchema(schema) as Json;
@@ -30,6 +32,7 @@ function simplify(node: unknown): unknown {
   const out: Json = {};
   for (const [k, v] of Object.entries(node)) {
     if ((k === "maximum" || k === "minimum") && typeof v === "number" && Math.abs(v) >= Number.MAX_SAFE_INTEGER) continue;
+    if (k === "minItems" || k === "maxItems") continue;
     out[k] = simplify(v);
   }
   return out;

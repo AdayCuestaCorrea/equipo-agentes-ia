@@ -9,6 +9,9 @@ import { LLMOutputError, LLMUnavailableError, ReplayMissingError } from "./types
 
 const Schema = z.object({ ok: z.boolean(), n: z.number().int().min(1).nullable() });
 const req = { key: "k", schema: Schema, system: "s", prompt: "p" };
+const sleep = vi.fn(async () => {});
+const daily = () =>
+  new ApiError({ message: '{"error":{"code":429,"details":[{"quotaId":"GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]}}', status: 429 });
 
 function client(...answers: (string | Error)[]) {
   const generateContent = vi.fn(async () => {
@@ -39,7 +42,7 @@ describe("parseStructured", () => {
 describe("GeminiProvider", () => {
   it("sends the JSON schema and returns validated data with metadata", async () => {
     const { c, generateContent } = client('{"ok":true,"n":2}');
-    const res = await new GeminiProvider({ client: c, model: "m1", fallbackModel: "m2" }).generate(req);
+    const res = await new GeminiProvider({ sleep, client: c, model: "m1", fallbackModel: "m2" }).generate(req);
     expect(res).toMatchObject({ data: { ok: true, n: 2 }, provider: "gemini", model: "m1", fallback: false });
     expect(res.usage).toEqual({ inputTokens: 10, outputTokens: 5 });
     const params = (generateContent.mock.calls[0] as unknown as [{ config: Record<string, unknown> }])[0];
@@ -48,35 +51,54 @@ describe("GeminiProvider", () => {
 
   it("retries once with the validation error, then gives up", async () => {
     const { c, generateContent } = client('{"ok":1}', '{"ok":true,"n":null}');
-    await expect(new GeminiProvider({ client: c, model: "m1", fallbackModel: "m1" }).generate(req)).resolves.toMatchObject({
+    await expect(new GeminiProvider({ sleep, client: c, model: "m1", fallbackModel: "m1" }).generate(req)).resolves.toMatchObject({
       data: { ok: true },
     });
     const second = (generateContent.mock.calls[1] as unknown as [{ contents: string }])[0];
     expect(second.contents).toMatch(/no cumplía el esquema/);
 
     const bad = client('{"ok":1}', "{}");
-    await expect(new GeminiProvider({ client: bad.c, model: "m1", fallbackModel: "m1" }).generate(req)).rejects.toBeInstanceOf(
+    await expect(new GeminiProvider({ sleep, client: bad.c, model: "m1", fallbackModel: "m1" }).generate(req)).rejects.toBeInstanceOf(
       LLMOutputError,
     );
   });
 
-  it("falls back to the second model on 429 and reports it", async () => {
-    const { c } = client(new ApiError({ message: "quota", status: 429 }), '{"ok":true,"n":null}');
-    const res = await new GeminiProvider({ client: c, model: "m1", fallbackModel: "m2" }).generate(req);
+  it("retries a 503 on the same model with backoff", async () => {
+    sleep.mockClear();
+    const busy = () => new ApiError({ message: "high demand", status: 503 });
+    const { c } = client(busy(), busy(), '{"ok":true,"n":null}');
+    const res = await new GeminiProvider({ sleep, client: c, model: "m1", fallbackModel: "m2" }).generate(req);
+    expect(res).toMatchObject({ model: "m1", fallback: false });
+    expect(sleep.mock.calls).toEqual([[2000], [6000]]);
+  });
+
+  it("waits Google's retryDelay on a per-minute 429", async () => {
+    sleep.mockClear();
+    const perMinute = new ApiError({ message: '{"error":{"details":[{"retryDelay":"7s"}]}}', status: 429 });
+    const { c } = client(perMinute, '{"ok":true,"n":null}');
+    await new GeminiProvider({ sleep, client: c, model: "m1", fallbackModel: "m2" }).generate(req);
+    expect(sleep.mock.calls).toEqual([[7000]]);
+  });
+
+  it("falls back to the second model when the daily quota is exhausted", async () => {
+    sleep.mockClear();
+    const { c } = client(daily(), '{"ok":true,"n":null}');
+    const res = await new GeminiProvider({ sleep, client: c, model: "m1", fallbackModel: "m2" }).generate(req);
     expect(res).toMatchObject({ model: "m2", fallback: true });
+    expect(sleep).not.toHaveBeenCalled();
   });
 
   it("raises LLMUnavailableError when every model is out of quota", async () => {
-    const e = () => new ApiError({ message: "quota", status: 429 });
+    const e = daily;
     const { c } = client(e(), e());
-    await expect(new GeminiProvider({ client: c, model: "m1", fallbackModel: "m2" }).generate(req)).rejects.toBeInstanceOf(
+    await expect(new GeminiProvider({ sleep, client: c, model: "m1", fallbackModel: "m2" }).generate(req)).rejects.toBeInstanceOf(
       LLMUnavailableError,
     );
   });
 
   it("does not hide other API errors such as an invalid key", async () => {
     const { c } = client(new ApiError({ message: "API key not valid", status: 400 }));
-    await expect(new GeminiProvider({ client: c, model: "m1", fallbackModel: "m2" }).generate(req)).rejects.toBeInstanceOf(ApiError);
+    await expect(new GeminiProvider({ sleep, client: c, model: "m1", fallbackModel: "m2" }).generate(req)).rejects.toBeInstanceOf(ApiError);
   });
 });
 
