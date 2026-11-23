@@ -14,7 +14,8 @@
     "gen:template": "tsx scripts/gen-template.ts",
     "predev": "npm run gen:template",
     "prebuild": "npm run gen:template",
-    "smoke": "tsx --env-file=.env.local scripts/smoke-api.ts"
+    "smoke": "tsx --env-file=.env.local scripts/smoke-api.ts",
+    "set-showcase": "tsx --env-file=.env.local scripts/set-showcase.ts"
   },
   "dependencies": {
     "@google/genai": "^3.6.1",
