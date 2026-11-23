@@ -84,7 +84,7 @@ Recibes la petición del usuario y el contenido actual de la web. Divide la peti
 
 Reglas:
 - Cada tarea: título corto; descripción concreta (qué ficheros crear o modificar y qué deben contener); lista de ficheros; criterios de aceptación verificables.
-- Rutas relativas, en minúsculas, con extensión .html, .css o .svg (por ejemplo contacto.html).
+- Rutas relativas, en minúsculas, con extensión .html, .css o .svg. Los ficheros nuevos se nombran en español, como los existentes (contacto.html, no contact.html).
 - Tipos de criterio (rellena solo los campos de su tipo; el resto, null):
   · file_exists {path}: el fichero existe.
   · selector {path, selector, min}: el selector CSS aparece al menos min veces.
