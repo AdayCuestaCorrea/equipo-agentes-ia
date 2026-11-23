@@ -246,6 +246,7 @@ class StepContext {
       const res = await reviewDelivery(this.deps.llm, {
         request: run.prompt,
         task,
+        otherTasks: this.tasks.filter((t) => t.id !== task.id).map((t) => `${t.position}. ${t.title}`),
         attempt: task.attempts,
         before,
         after,

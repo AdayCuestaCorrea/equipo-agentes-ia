@@ -160,6 +160,7 @@ Ya se han ejecutado comprobaciones automáticas (HTML válido, enlaces, formular
 
 Reglas:
 - severity "blocker" solo para problemas que impiden dar la tarea por cumplida. Estilo, redacción o mejoras opcionales son "minor".
+- Evalúa SOLO esta tarea. Los ficheros sin cambios existen y vienen de tareas anteriores: no pidas crearlos ni rehacerlos. Lo que corresponda a otras tareas del plan tampoco es un fallo de esta.
 - No repitas fallos que ya hayan detectado las comprobaciones automáticas.
 - verdict "pass" si no hay ningún blocker.
 - En español y conciso.`;
@@ -167,6 +168,8 @@ Reglas:
 export interface ReviewInput {
   request: string;
   task: PlannedTask & { position: number };
+  /** Titles of the plan's other tasks, so the reviewer does not judge them here. */
+  otherTasks: string[];
   attempt: number;
   before: SiteFiles;
   after: SiteFiles;
@@ -189,11 +192,13 @@ ${task.description}
 Criterios de aceptación:
 ${renderCriteria(task.acceptance)}
 
+Otras tareas del plan (no las evalúes aquí): ${input.otherTasks.join(" · ") || "ninguna"}
+
 Comprobaciones automáticas: ${report.results.length - failed.length}/${report.results.length} superadas.${
       failed.length ? `\nFallidas:\n${failed.map((r) => `- ${r.label}: ${r.details.join("; ")}`).join("\n")}` : ""
     }
 
-Ficheros sin cambios: ${unchanged.join(", ") || "ninguno"}
+Ficheros que ya existen y no cambian en esta entrega: ${unchanged.join(", ") || "ninguno"}
 
 Ficheros creados o modificados en esta entrega:
 
