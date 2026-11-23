@@ -64,3 +64,8 @@ Registro vivo para la sección «Cómo usé Claude Code» del README. Fechas en 
   - El formulario generado es correcto: labels, `type="email"` y `required`.
   - Sospeché que Develop había borrado contenido de `index.html` por su tamaño. Lo comprobé y no fue así.
 - **Grabación del modo demo**: `fixtures/demo-run.json` sale de esa ejecución real. En ella, Testing aprobó todo al primer intento, así que la grabación real **no** muestra el bucle de corrección. El bucle está cubierto por el test con la grabación escrita a mano (`lib/engine/__fixtures__/contact-run.ts`).
+- **Regrabación para buscar el bucle** (decisión mía): 4 ejecuciones reales, todas `done` y sin ninguna corrección. Con el prompt mejorado, Develop acierta a la primera.
+  - Nos quedamos con una grabación real (la 1.ª: 3 tareas, 7 llamadas, 29,6 s con Groq) en vez de fabricar un fallo.
+  - El bucle queda demostrado por los tests y por las ejecuciones en vivo cuando ocurra.
+- **Orden de proveedores** (decisión mía, a propuesta de la IA): Groq → Gemini, configurable con `LLM_ORDER`. Groq tarda 1–20 s por llamada; Gemini Flash-Lite, 18–66 s, y da 503 frecuentes.
+- **Hallazgo en las regrabaciones**: con ejecuciones seguidas, Groq devuelve 429 (8K tokens/min). En la app el siguiente paso se encadenaba al instante, así que 3 errores seguidos llegarían en segundos. Ahora hay una pausa de 20 s antes de reintentar un paso fallido.
