@@ -67,6 +67,12 @@ describe("global checks", () => {
     expect(failedIds(site(html))).toContain("links:contacto.html");
   });
 
+  it("can limit global checks to the files a task changed", () => {
+    const files = { ...loadTemplate(), "roto.html": page("<div>") };
+    expect(failedIds(files)).toEqual(["parse:roto.html"]);
+    expect(runChecks(files, [], { only: ["index.html"] }).passed).toBe(true);
+  });
+
   it("validates CSS brace balance, ignoring comments and strings", () => {
     expect(cssProblems(`a { content: "}"; } /* { */`)).toEqual([]);
     expect(cssProblems("a { color: red;")).toEqual(["faltan 1 llave(s) '}' por cerrar"]);

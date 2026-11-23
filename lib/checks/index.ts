@@ -23,10 +23,14 @@ const result = (id: string, label: string, details: string[]): CheckResult => ({
 
 const htmlPaths = (files: SiteFiles) => Object.keys(files).filter((p) => p.endsWith(".html")).sort();
 
-/** Checks every site must pass after any change, independent of the task. */
-export function globalChecks(files: SiteFiles, docs = loadDocs(files)): CheckResult[] {
+/**
+ * Checks every page must pass, independent of the task. `only` limits them to some files
+ * (the ones a task changed), so a task is not blamed for problems it did not introduce.
+ */
+export function globalChecks(files: SiteFiles, docs = loadDocs(files), only?: string[]): CheckResult[] {
+  const inScope = (p: string) => !only || only.includes(p);
   const out: CheckResult[] = [];
-  for (const p of htmlPaths(files)) {
+  for (const p of htmlPaths(files).filter(inScope)) {
     const $ = docs.get(p)!;
     out.push(
       result(
@@ -42,7 +46,7 @@ export function globalChecks(files: SiteFiles, docs = loadDocs(files)): CheckRes
     out.push(result(`links:${p}`, `Enlaces y recursos de ${p} válidos`, linkProblems(p, $, files)));
     if ($("form").length > 0) out.push(result(`forms:${p}`, `Formularios de ${p} válidos`, formProblems($)));
   }
-  for (const p of Object.keys(files).filter((f) => f.endsWith(".css")).sort()) {
+  for (const p of Object.keys(files).filter((f) => f.endsWith(".css") && inScope(f)).sort()) {
     out.push(result(`css:${p}`, `${p} tiene CSS bien formado`, cssProblems(files[p])));
   }
   return out;
@@ -108,11 +112,11 @@ function loadDocs(files: SiteFiles): Map<string, Doc> {
   return new Map(htmlPaths(files).map((p) => [p, loadDoc(files[p])]));
 }
 
-/** Deterministic part of Testing: global checks plus the task's acceptance criteria. */
-export function runChecks(files: SiteFiles, criteria: Criterion[] = []): CheckReport {
+/** Deterministic part of Testing: global checks (optionally on some files) plus acceptance criteria. */
+export function runChecks(files: SiteFiles, criteria: Criterion[] = [], opts: { only?: string[] } = {}): CheckReport {
   const docs = loadDocs(files);
   const results = [
-    ...globalChecks(files, docs),
+    ...globalChecks(files, docs, opts.only),
     ...criteria.map((c, i) => result(`criterion:${i}`, criterionLabel(c), criterionProblems(c, files, docs))),
   ];
   return { passed: results.every((r) => r.passed), results };
