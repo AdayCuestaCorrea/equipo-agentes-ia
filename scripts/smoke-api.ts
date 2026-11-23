@@ -58,11 +58,16 @@ async function main() {
   }
   console.log(`\n■ ${run?.status} en ${((Date.now() - started) / 1000).toFixed(0)} s, v${run?.current_version}${run?.error ? ` (${run.error})` : ""}`);
 
-  const preview = await fetch(`${base}/preview/${body.id}/${run?.current_version}/contacto.html`);
+  // The page Develop created (its name is the Orchestrator's choice).
+  const { data: deliveries } = await db.from("agent_messages").select("body").eq("run_id", body.id).eq("kind", "delivery");
+  const created =
+    deliveries?.flatMap((d) => (d.body.changed as { path: string; isNew: boolean }[]).filter((c) => c.isNew && c.path.endsWith(".html"))).at(0)?.path ??
+    "contacto.html";
+  const preview = await fetch(`${base}/preview/${body.id}/${run?.current_version}/${created}`);
   const html = await preview.text();
-  console.log(`Vista previa contacto.html → ${preview.status} ${preview.headers.get("content-type")}`);
+  console.log(`Vista previa ${created} → ${preview.status} ${preview.headers.get("content-type")}`);
   console.log(`  CSP: ${preview.headers.get("content-security-policy")}`);
-  console.log(`  <form>: ${html.includes("<form")}, enlace desde index: ${(await (await fetch(`${base}/preview/${body.id}/${run?.current_version}/`)).text()).includes("contacto.html")}`);
+  console.log(`  <form>: ${html.includes("<form")}, enlace desde index: ${(await (await fetch(`${base}/preview/${body.id}/${run?.current_version}/`)).text()).includes(created)}`);
 }
 
 main().catch((e) => {
