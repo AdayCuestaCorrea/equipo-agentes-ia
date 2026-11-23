@@ -44,6 +44,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         </header>
         {children}
+        <footer className="mx-auto mt-auto w-full max-w-7xl px-4 py-6 text-xs text-zinc-400 sm:px-6">
+          Next.js · Supabase · Groq / Gemini · Vercel
+          {process.env.VERCEL_GIT_COMMIT_SHA && <> · versión {process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 7)}</>}
+        </footer>
       </body>
     </html>
   );
